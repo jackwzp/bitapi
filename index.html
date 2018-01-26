@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+Hello
+	<script type="text/javascript" src="./dist/scripts/bundle.js"></script>
+	
+	<script type="text/javascript">
+		
+		bitcoin.useRpcApi();
+
+		bitcoin.cmd('getblockcount').then(function(block) {
+			console.log(block);
+		}).catch(function(err) {
+			console.log("JACK: " + err)
+		});
+	</script>
+	
+</body>
+</html>
