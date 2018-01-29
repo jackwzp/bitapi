@@ -30,7 +30,9 @@ class BitAPI {
 
 class WebAPI {
 	constructor() {
-		this.apiUrl = "http://blockchain.info";
+		// this.apiUrl = "https://blockchain.info";
+		this.apiUrl = "https://api.blocktrail.com/v1/btc";
+		this.apiKey = "53a40ad90cd04804d5a4899bca4102bf57cc0817";
 		this.cmd = this.cmd.bind(this);
 		this.initializeMap = this.initializeMap.bind(this);
 		this.getUrl = this.getUrl.bind(this);
@@ -40,7 +42,16 @@ class WebAPI {
 	initializeMap() {
 		this.cmdMap = new Map();
 		this.cmdMap.set("getblockcount", this.apiUrl + "/q/getblockcount");
-		this.cmdMap.set("getblock", this.apiUrl + "/block-height/");
+		this.cmdMap.set("getblock", this.apiUrl + "/block/");
+		this.cmdMap.set("latestblock", this.apiUrl + "/block/latest");
+	}
+
+	getUrl(cmd, options) {
+		var result = this.cmdMap.get(cmd);
+		if (options.length > 0) {
+			result += options[0].toString();
+		}
+		return result + '?api_key=' + this.apiKey;
 	}
 
 	cmd(command, options=[]) {
@@ -48,20 +59,14 @@ class WebAPI {
 			var apiUrl = this.getUrl(command, options);
 			
 			return new Promise(function(resolve, reject) {
-				request(apiUrl, function(err, res, body) {
+				request(apiUrl, { withCredentials: false }, function(err, res, body) {
+					if(err) reject(err);
 					resolve(JSON.parse(body));
 				});
 			})
 		}
 	}
 
-	getUrl(cmd, options) {
-		var result = this.cmdMap.get(cmd);
-		if (options.length > 0) {			
-			result += options[0].toString() + '?format=json';
-		}
-		return result;
-	}
 }
 
 class RpcAPI {
