@@ -9,6 +9,6 @@ gulp.task('default', () => {
   .transform(babelify, { presets : [ 'es2015' ] })
   .bundle()
   .pipe(source('bundle.js'))
-  .pipe(gulp.dest('dist/scripts'))
+  .pipe(gulp.dest('static/scripts'))
   .pipe(buffer())     // You need this if you want to continue using the stream with other plugins
 });
