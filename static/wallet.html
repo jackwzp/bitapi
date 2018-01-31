@@ -10,7 +10,7 @@
     
     <link href="./css/style.css" rel="stylesheet">
 
-    <title>Wallet</title>
+    <title>Bitcoin Wallet</title>
   </head>
   <body>
   	
@@ -34,30 +34,37 @@
           <button id="import-wallet" class="btn btn-lg btn-secondary">Import Existing Wallet</button>
         </p>
 
-        <div id="new-wallet" style="display: none">
-          <form id="new-wallet-form">
-            <div class="form-group">
-              <input type="password" name="password" placeholder="Enter a strong password" class="form-control">
-            </div>
-            <button id="" type="submit" class="btn btn-secondary">Create</button>
-          </form>
-        </div>
 
-        <div id="old-wallet" style="display: none">
-          <form id="old-wallet-form">
-            <div class="form-group">
-              <input type="text" name="cipher" placeholder="Enter encrypted keystore" class="form-control">
-              <input type="password" name="password" placeholder="Enter your password" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-secondary">Unlock</button>
-          </form>
-        </div>
-
+        <!-- Main Wallet Area -->
         <div class="container">
+
+          <!-- Alert Banner -->
           <div id="alert-msg"></div>
+
+          <!-- New Wallet Form -->
+          <div id="new-wallet" style="display: none">
+            <form id="new-wallet-form">
+              <div class="form-group">
+                <input type="password" name="password" placeholder="Enter a strong password" class="form-control">
+              </div>
+              <button id="" type="submit" class="btn btn-secondary">Create</button>
+            </form>
+          </div>
+
+          <!-- Import Wallet Form -->
+          <div id="old-wallet" style="display: none">
+            <form id="old-wallet-form">
+              <div class="form-group">
+                <input type="text" name="cipher" placeholder="Enter encrypted keystore" class="form-control">
+                <input type="password" name="password" placeholder="Enter your password" class="form-control">
+              </div>
+              <button type="submit" class="btn btn-secondary">Unlock</button>
+            </form>
+          </div>
+
+          <!-- Dynamically generated UI for wallet -->
           <div id="output-area"></div>
         </div>
-
       </main>
 
       <footer class="mastfoot mt-auto">
@@ -70,7 +77,6 @@
 
 
 
-    <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>

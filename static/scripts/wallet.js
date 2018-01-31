@@ -1,3 +1,5 @@
+var gWallet = 0;
+
 
 $('document').ready(function() {
 	$("#create-wallet").click(function() {
@@ -14,25 +16,34 @@ $('document').ready(function() {
 
 	$("#new-wallet-form").on('submit', function(e) {
 		e.preventDefault(e);
-		hideCreateWallet();
-		changeTextArea(generateNewWalletInfo());
-		$('#new-wallet-form')[0].reset();
-
+		bitcoin.createWallet().then(function(wallet) {
+			gWallet = wallet
+			hideCreateWallet();
+			changeTextArea(generateNewWalletInfo());
+			$('#new-wallet-form')[0].reset();
+		});
 	})
 
 	$("#old-wallet-form").on('submit', function(e) {
 		e.preventDefault(e);
-
-		// TODO: form valication with backend to ensure
-		// keys are decrypted properly.
-		hideImportWallet();
-		changeTextArea(generateWalletUI());
-		$('#old-wallet-form')[0].reset();
-		
+		var key = $('input[name="cipher"]').val();
+		bitcoin.createWallet("mainnet", key).then(function(wallet) {
+			gWallet = wallet;
+			// Sanity check to make sure private key is correct
+			if (wallet.privateKey === key) {
+				hideImportWallet();
+				changeTextArea(generateWalletUI());
+				$('#old-wallet-form')[0].reset();
+				updateBtcBalance();
+			} else {
+				displayAlert("danger", "Private key is not correctly formed!");
+			}
+		});
 	})
 
 	$('#output-area').on('click', '#confirm-key', function(e) {		
 		changeTextArea(generateWalletUI());
+		updateBtcBalance();
 	})
 
 	// Handle sending of transaction
@@ -93,8 +104,8 @@ function displayAlert(type, msg) {
 function generateNewWalletInfo() {
 	// TODO: add backend support to create new wallet keys etc.
 	var html = `
-		<h4>Save this encrypted output and your password!!</h4>
-		<div class='key-info'>0923jf90dsu82jfds</div>
+		<h4>Save your private key and DO NOT lose it!</h4>
+		<div class='key-info'>${gWallet.privateKey}</div>
 		<button id='confirm-key' type='submit' class='btn btn-secondary'>ok, got it!</button>
 	`;
 	return html;
@@ -102,8 +113,8 @@ function generateNewWalletInfo() {
 
 function generateWalletUI() {
 	var html = `
-		<h5>Balance: </h5>
-		<h5>Address: </h5>
+		<h5 id='btc-balance'>Balance: </h5>
+		<h5>Address: ${gWallet.address}</h5>
 		<h5>Send Transcation</h5>
 		<form id='tx-form'>
 			<div class='form-group'>
@@ -114,4 +125,10 @@ function generateWalletUI() {
 		</form>
 	`;
 	return html;
+}
+
+function updateBtcBalance() {
+	bitcoin.cmd('address', [gWallet.address]).then(function(info) {
+		$('#btc-balance').html("Balance: " + info.balance + " Satoshis");
+	})
 }

@@ -2,6 +2,7 @@
 
 var request = require('request');
 var bitrpc = require('bitcoin');
+var wallet = require('./key');
 
 class BitAPI {
 	constructor() {
@@ -22,6 +23,10 @@ class BitAPI {
 		this.current = this.webapi;
 	};
 
+	createWallet(network=0, key=0) {
+		return wallet.createWallet(network, key);
+	}
+
 	cmd(command, options=[]) {
 		return this.current.cmd(command, options);
 	};
@@ -41,9 +46,10 @@ class WebAPI {
 
 	initializeMap() {
 		this.cmdMap = new Map();
-		this.cmdMap.set("getblockcount", this.apiUrl + "/q/getblockcount");
+		// this.cmdMap.set("getblockcount", this.apiUrl + "/q/getblockcount");
 		this.cmdMap.set("getblock", this.apiUrl + "/block/");
 		this.cmdMap.set("latestblock", this.apiUrl + "/block/latest");
+		this.cmdMap.set("address", this.apiUrl + "/address/");
 	}
 
 	getUrl(cmd, options) {

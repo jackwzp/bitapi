@@ -2,21 +2,27 @@
 
 var bitgeek = require('./src/bitAPI')
 
-bitgeek.useRpcApi();
+// bitgeek.createWallet("mainnet", "L2fJQ9Pwm57s9PGn2G59xxRJEDQTe75TEs7vT9g23qH7uLEb55pA")
+// .then(wallet => console.log(wallet))
 
-bitgeek.cmd('getblockcount')
-.then((block) => {
-	console.log(block)
-	return bitgeek.cmd('getblockhash', [block-2]);
-})
-.then((hash) => {
-	console.log(hash);
-	return bitgeek.cmd('getblock', [hash, 1]);
-})
-.then((data) => {
-	console.log(data);
-})
-.catch(err=>console.log(err));
+bitgeek.cmd('address', ['1455qMhbopGqGbp7XP6cmTHwfpEqjhBmYF'])
+.then(info => console.log(info));
+
+// bitgeek.useRpcApi();
+
+// bitgeek.cmd('getblockcount')
+// .then((block) => {
+// 	console.log(block)
+// 	return bitgeek.cmd('getblockhash', [block-2]);
+// })
+// .then((hash) => {
+// 	console.log(hash);
+// 	return bitgeek.cmd('getblock', [hash, 1]);
+// })
+// .then((data) => {
+// 	console.log(data);
+// })
+// .catch(err=>console.log(err));
 
 // bitgeek.cmd('getblockcount').then(function(block) {
 // 	console.log(block);

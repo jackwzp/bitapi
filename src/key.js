@@ -9,9 +9,9 @@ var getRandomValues = require('get-random-values');
 
 
 function toHexString(byteArray) {
-  return Array.from(byteArray, function(byte) {
-    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-  }).join('')
+	return Array.from(byteArray, function(byte) {
+		return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+	}).join('')
 }
 
 
@@ -20,11 +20,10 @@ function createRandom() {
 }
 
 
-function createKeyPair() {
+function createKeyPair(key=0) {
 
-	// Generate a random 256 bit binary # for private key
-	var privateKey = createRandom();
-	console.log(privateKey);
+	// Import existing key or generate a random 256 bit binary #
+	var privateKey = (key === 0)? createRandom() : decodePrivKey(key);
 
 	// Use secp256k1 curve for bitcoin
 	var elliptic = ecurve.getCurveByName('secp256k1');
@@ -59,6 +58,18 @@ function encodePrivKey(privateKey, network) {
 	return key;
 }
 
+// Convert WIF-compressed key to hex
+function decodePrivKey(key) {
+	// Convert from base58 back to hex
+	var bytes = base58.decode(key);
+
+	// Remove the two byte prefix and the 1 byte suffix and 4 byte checksum.
+	// Each element in byte array is a single byte, we want the middle 32 bytes.
+	bytes = bytes.slice(1,33); // End index is non-inclusive so [1-32] inclusive.
+
+	return bytes.toString('hex');
+}
+
 function encodePubKey(key, format="compressed") {
 	var publicKey = "";
 	if (format === "compressed") {
@@ -69,7 +80,6 @@ function encodePubKey(key, format="compressed") {
 	}
 
 	return publicKey;
-	
 	
 	// Explain to students what is compressed format by showing x value
 	// and explain 02 if y > 0 and 03 otherwise
@@ -82,14 +92,13 @@ function generateAddr(publicKey, network=0) {
 	// Select the right version prefix based on network
 	var versionPrefix = (network === "testnet")? "6f" : "00";
 
-	// Use the full uncompressed public key 
+	// Use the compressed public key to match WIF-compressed private key
 	var bytes = Buffer.from(encodePubKey(publicKey), 'hex');
 
 	// Create key hash by RIPEMD160(SHA256(bytes))	
 	var tmp = crypto.createHash('sha256').update(bytes).digest();
 	var keyHash = crypto.createHash('rmd160').update(tmp).digest();
 	keyHash = versionPrefix + keyHash.toString('hex');
-	console.log("Key Hash: " + keyHash);
 
 	// Create checksum by sha256(sha256(keyHash))
 	bytes = Buffer.from(keyHash, 'hex');
@@ -106,15 +115,23 @@ function generateAddr(publicKey, network=0) {
 	return addr;
 }
 
-function creatWallet(network=0) {
-	var keys = createKeyPair();		
-	var addr = generateAddr(keys.public);
+function createWallet(network=0, importKey=0) {
+	var keys = createKeyPair(importKey);
+	var addr = generateAddr(keys.public, network);
 
-	console.log("Private Key: " + encodePrivKey(keys.private));
-	console.log("Public Key: " + encodePubKey(keys.public));
-	console.log("Address: " + addr);
+	var result = {
+		privateKey: encodePrivKey(keys.private, network),
+		publicKey: encodePubKey(keys.public),
+		address: addr
+	}
+
+	return new Promise(function(resolve, reject) {
+		resolve(result);
+	})
 
 }
 
 
-creatWallet();
+module.exports = {
+	createWallet
+}
