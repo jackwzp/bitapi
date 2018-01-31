@@ -16,7 +16,9 @@ $('document').ready(function() {
 
 	$("#new-wallet-form").on('submit', function(e) {
 		e.preventDefault(e);
-		bitcoin.createWallet().then(function(wallet) {
+		var network = $('input[name=network]:checked').val();
+
+		bitcoin.createWallet(network).then(function(wallet) {
 			gWallet = wallet
 			hideCreateWallet();
 			changeTextArea(generateNewWalletInfo());
@@ -27,7 +29,9 @@ $('document').ready(function() {
 	$("#old-wallet-form").on('submit', function(e) {
 		e.preventDefault(e);
 		var key = $('input[name="cipher"]').val();
-		bitcoin.createWallet("mainnet", key).then(function(wallet) {
+		// We don't need to pass in the network param because
+		// network will automatically be determined
+		bitcoin.createWallet("", key).then(function(wallet) {
 			gWallet = wallet;
 			// Sanity check to make sure private key is correct
 			if (wallet.privateKey === key) {
@@ -36,12 +40,12 @@ $('document').ready(function() {
 				$('#old-wallet-form')[0].reset();
 				updateBtcBalance();
 			} else {
-				displayAlert("danger", "Private key is not correctly formed!");
+				displayAlert("danger", "Not a valid key, only WIF-compressed format is supported!");
 			}
 		});
 	})
 
-	$('#output-area').on('click', '#confirm-key', function(e) {		
+	$('#output-area').on('click', '#confirm-key', function(e) {
 		changeTextArea(generateWalletUI());
 		updateBtcBalance();
 	})

@@ -16,7 +16,7 @@ function toHexString(byteArray) {
 
 
 function createRandom() {
-	return toHexString(getRandomValues(new Uint8Array(32)));	
+	return toHexString(getRandomValues(new Uint8Array(32)));
 }
 
 
@@ -28,12 +28,12 @@ function createKeyPair(key=0) {
 	// Use secp256k1 curve for bitcoin
 	var elliptic = ecurve.getCurveByName('secp256k1');
 
-	// Create public key by elliptic curve multiplication	
+	// Create public key by elliptic curve multiplication
 	var publicKey = elliptic.G.multiply(BigInteger.fromHex(privateKey));
 
 	// Return key pair in WIF-compressed format
 	return { private: privateKey, public: publicKey};
-	
+
 }
 
 // Create WIF-Compressed format
@@ -74,13 +74,13 @@ function encodePubKey(key, format="compressed") {
 	var publicKey = "";
 	if (format === "compressed") {
 		publicKey = key.getEncoded(true).toString('hex');
-		
+
 	} else {
 		publicKey = key.getEncoded(false).toString('hex');
 	}
 
 	return publicKey;
-	
+
 	// Explain to students what is compressed format by showing x value
 	// and explain 02 if y > 0 and 03 otherwise
 	// console.log(publicKey);
@@ -95,7 +95,7 @@ function generateAddr(publicKey, network=0) {
 	// Use the compressed public key to match WIF-compressed private key
 	var bytes = Buffer.from(encodePubKey(publicKey), 'hex');
 
-	// Create key hash by RIPEMD160(SHA256(bytes))	
+	// Create key hash by RIPEMD160(SHA256(bytes))
 	var tmp = crypto.createHash('sha256').update(bytes).digest();
 	var keyHash = crypto.createHash('rmd160').update(tmp).digest();
 	keyHash = versionPrefix + keyHash.toString('hex');
@@ -108,10 +108,10 @@ function generateAddr(publicKey, network=0) {
 	// Append first 4 byte of checksum to keyHash
 	var addr = keyHash + checksum.toString('hex').substr(0,8);
 
-	// Convert to base58 encoding	
+	// Convert to base58 encoding
 	bytes = Buffer.from(addr, 'hex');
 	addr = base58.encode(bytes);
-	
+
 	return addr;
 }
 
@@ -128,10 +128,26 @@ function createWallet(network=0, importKey=0) {
 	return new Promise(function(resolve, reject) {
 		resolve(result);
 	})
+}
 
+function getNetworkFromKey(key) {
+	var network = 'unknown';
+	if (key !== 0) {
+		var first = key.charAt(0);
+
+		if (first === 'K' || first === 'L') {
+			network = 'mainnet';
+		} else if (first === 'c') {
+			network = 'testnet';
+		}
+	}
+	return network;
 }
 
 
 module.exports = {
-	createWallet
+	createWallet,
+	getNetworkFromKey
 }
+
+
