@@ -3,17 +3,20 @@
 var request = require('request');
 var bitrpc = require('bitcoin');
 var wallet = require('./key');
+var tx = require('./transaction');
 
 class BitAPI {
 	constructor() {
 		this.webapi = new WebAPI();
 		this.rpc = new RpcAPI();
 		this.current = this.webapi;
+		this.wallet = {};
 
-		this.useRpcApi = this.useRpcApi.bind(this);
-		this.useWebApi - this.useWebApi.bind(this);
-		this.cmd = this.cmd.bind(this);
-		this.createWallet = this.createWallet.bind(this);
+		// this.useRpcApi = this.useRpcApi.bind(this);
+		// this.useWebApi - this.useWebApi.bind(this);
+		// this.cmd = this.cmd.bind(this);
+		// this.createWallet = this.createWallet.bind(this);
+		// this.sendBitcoin = this.sendBitcoin.bind(this);
 	};
 
 	useRpcApi() {
@@ -24,18 +27,46 @@ class BitAPI {
 		this.current = this.webapi;
 	};
 
+	getWallet() {
+		return this.wallet;
+	}
+
 	createWallet(network=0, key=0) {
 		// When importing keys, determine the network automatically
 		if (wallet.getNetworkFromKey(key) !== "unknown") {
 			network = wallet.getNetworkFromKey(key);
 		}
 		this.current.changeNetwork(network);
-		return wallet.createWallet(network, key);
+		var result = wallet.createWallet(network, key);
+		this.wallet = result;
+
+		return new Promise(function(resolve, reject) {
+			resolve(result);
+		});
+	}
+
+	sendBitcoin(amount, toAddress, fromAddress, privKey) {
+		var self = this;
+		return new Promise(function(resolve, reject) {
+			self.cmd('unspent-outputs', [fromAddress]).then(function (data) {
+				console.log("getting unspent...");
+				var transaction = tx.create(data, amount, toAddress, privKey);
+				return self.cmd('pushtx', [transaction]);
+			}).then(function(result) {
+				resolve(result);
+			}).catch(function(err) {
+				reject(err);
+			})
+		});
 	}
 
 	cmd(command, options=[]) {
 		return this.current.cmd(command, options);
 	};
+
+	changeNetwork(network) {
+		this.current.changeNetwork(network);
+	}
 
 }
 
@@ -46,11 +77,12 @@ class WebAPI {
 		this.apiKey = "53a40ad90cd04804d5a4899bca4102bf57cc0817";
 		this.network = "mainnet";
 
-		this.cmd = this.cmd.bind(this);
-		this.initializeMap = this.initializeMap.bind(this);
-		this.getUrl = this.getUrl.bind(this);
-		this.changeNetwork = this.changeNetwork.bind(this);
-		this.getNetworkEndPoint = this.getNetworkEndPoint.bind(this);
+		// this.cmd = this.cmd.bind(this);
+		// this.initializeMap = this.initializeMap.bind(this);
+		// this.getUrl = this.getUrl.bind(this);
+		// this.changeNetwork = this.changeNetwork.bind(this);
+		// this.getNetworkEndPoint = this.getNetworkEndPoint.bind(this);
+
 		this.initializeMap();
 	}
 
@@ -60,6 +92,8 @@ class WebAPI {
 		this.cmdMap.set("getblock", "/block/");
 		this.cmdMap.set("latestblock", "/block/latest");
 		this.cmdMap.set("address", "/address/");
+		this.cmdMap.set("unspent-outputs", "/address/");
+		this.cmdMap.set("pushtx", "blockchain.info/pushtx/tx=");
 	}
 
 	changeNetwork(network) {
@@ -72,6 +106,17 @@ class WebAPI {
 		if (options.length > 0) {
 			result += options[0].toString();
 		}
+
+		// Speical case handling
+		if (cmd === "unspent-outputs") {
+			result += '/unspent-outputs'
+		}
+
+		if (cmd === "pushtx") {
+			result = this.cmdMap.get(cmd) + options[0].toString();
+			return result;
+		}
+
 		return result + '?api_key=' + this.apiKey;
 	}
 

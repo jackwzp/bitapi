@@ -2,11 +2,22 @@
 
 var bitgeek = require('./src/bitAPI')
 
+bitgeek.changeNetwork('testnet');
+
+bitgeek.sendBitcoin(2, 'xyz', 'mvWgGVrE9sackcubBq4uFETgqGSqPeuPpr', 'privkey')
+.then(result => console.log("final: " + result))
+.catch(err => console.log("caught exception: " + err));
+
+console.log('done');
+
+// bitgeek.cmd('unspent-outputs', ['mvWgGVrE9sackcubBq4uFETgqGSqPeuPpr'])
+// .then(data => console.log(data));
+
 // bitgeek.createWallet("mainnet", "L2fJQ9Pwm57s9PGn2G59xxRJEDQTe75TEs7vT9g23qH7uLEb55pA")
 // .then(wallet => console.log(wallet))
 
-bitgeek.cmd('address', ['1455qMhbopGqGbp7XP6cmTHwfpEqjhBmYF'])
-.then(info => console.log(info));
+// bitgeek.cmd('address', ['1455qMhbopGqGbp7XP6cmTHwfpEqjhBmYF'])
+// .then(info => console.log(info));
 
 // bitgeek.useRpcApi();
 

@@ -1,6 +1,3 @@
-var gWallet = 0;
-
-
 $('document').ready(function() {
 	$("#create-wallet").click(function() {
 		hideImportWallet();
@@ -19,7 +16,6 @@ $('document').ready(function() {
 		var network = $('input[name=network]:checked').val();
 
 		bitcoin.createWallet(network).then(function(wallet) {
-			gWallet = wallet
 			hideCreateWallet();
 			changeTextArea(generateNewWalletInfo());
 			$('#new-wallet-form')[0].reset();
@@ -32,7 +28,6 @@ $('document').ready(function() {
 		// We don't need to pass in the network param because
 		// network will automatically be determined
 		bitcoin.createWallet("", key).then(function(wallet) {
-			gWallet = wallet;
 			// Sanity check to make sure private key is correct
 			if (wallet.privateKey === key) {
 				hideImportWallet();
@@ -109,7 +104,7 @@ function generateNewWalletInfo() {
 	// TODO: add backend support to create new wallet keys etc.
 	var html = `
 		<h4>Save your private key and DO NOT lose it!</h4>
-		<div class='key-info'>${gWallet.privateKey}</div>
+		<div class='key-info'>${bitcoin.getWallet().privateKey}</div>
 		<button id='confirm-key' type='submit' class='btn btn-secondary'>ok, got it!</button>
 	`;
 	return html;
@@ -118,7 +113,7 @@ function generateNewWalletInfo() {
 function generateWalletUI() {
 	var html = `
 		<h5 id='btc-balance'>Balance: </h5>
-		<h5>Address: ${gWallet.address}</h5>
+		<h5>Address: ${bitcoin.getWallet().address}</h5>
 		<h5>Send Transcation</h5>
 		<form id='tx-form'>
 			<div class='form-group'>
@@ -132,7 +127,7 @@ function generateWalletUI() {
 }
 
 function updateBtcBalance() {
-	bitcoin.cmd('address', [gWallet.address]).then(function(info) {
+	bitcoin.cmd('address', [bitcoin.getWallet().address]).then(function(info) {
 		$('#btc-balance').html("Balance: " + info.balance + " Satoshis");
 	})
 }

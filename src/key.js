@@ -125,9 +125,7 @@ function createWallet(network=0, importKey=0) {
 		address: addr
 	}
 
-	return new Promise(function(resolve, reject) {
-		resolve(result);
-	})
+	return result;
 }
 
 function getNetworkFromKey(key) {
