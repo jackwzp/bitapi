@@ -45,18 +45,23 @@ class BitAPI {
 		});
 	}
 
-	sendBitcoin(amount, toAddress, fromAddress, privKey) {
+	sendBitcoin(amount, toAddress) {
 		var self = this;
+		console.log("sendBitcoin()...");
 		return new Promise(function(resolve, reject) {
-			self.cmd('unspent-outputs', [fromAddress]).then(function (data) {
-				console.log("getting unspent...");
-				var transaction = tx.create(data, amount, toAddress, privKey);
-				return self.cmd('pushtx', [transaction]);
-			}).then(function(result) {
-				resolve(result);
-			}).catch(function(err) {
-				reject(err);
+			// Get unspent txs (UTXOs)
+			self.cmd('unspent-outputs', [self.wallet.address]).then(function (utxo) {
+				console.log("Got unspent");
+				// Create TX structure and push to web api
+				var transaction = tx.create(utxo, amount, toAddress, self.wallet);
+				resolve(transaction)
+				// return self.cmd('pushtx', [transaction]);
 			})
+			// .then(function(result) {
+			// 	resolve(result);
+			// }).catch(function(err) {
+			// 	reject(err);
+			// })
 		});
 	}
 

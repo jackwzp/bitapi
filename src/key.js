@@ -115,6 +115,13 @@ function generateAddr(publicKey, network=0) {
 	return addr;
 }
 
+function getKeyHashFromAddr(addr) {
+	// Convert from base58 back to hex
+	var bytes = base58.decode(addr);
+	bytes = bytes.slice(1, 21); // remove 1 byte prefix and 4 byte checksum suffix
+	return bytes.toString('hex');
+}
+
 function createWallet(network=0, importKey=0) {
 	var keys = createKeyPair(importKey);
 	var addr = generateAddr(keys.public, network);
@@ -145,7 +152,8 @@ function getNetworkFromKey(key) {
 
 module.exports = {
 	createWallet,
-	getNetworkFromKey
+	getNetworkFromKey,
+	getKeyHashFromAddr
 }
 
 

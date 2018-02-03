@@ -1,3 +1,7 @@
+
+const COIN = 100000000; // constant that defines number of Satoshis per BTC
+var gBalance = 0;
+
 $('document').ready(function() {
 	$("#create-wallet").click(function() {
 		hideImportWallet();
@@ -40,6 +44,7 @@ $('document').ready(function() {
 		});
 	})
 
+	// New wallet generation confirmation button click
 	$('#output-area').on('click', '#confirm-key', function(e) {
 		changeTextArea(generateWalletUI());
 		updateBtcBalance();
@@ -53,16 +58,17 @@ $('document').ready(function() {
 		var amount = $('input[name="btc"]').val();
 		var addr = $('input[name="addr"]').val();
 
-		//TODO: check amount <= balance
-		// isNaN might not be enough use an validator library?
-		if (amount <= 0 || Number.isNaN(amount)) {
+		//TODO: check amount <= balance without using a global
+		if (amount <= 0 || Number.isNaN(amount) || amount > gBalance) {
 			displayAlert("danger", "Please enter an valid amount");
 		}
 
 		// TODO: validate addr is correct bitcoin addr
+		bitcoin.sendBitcoin((amount*COIN/1), addr).then(function(result) {
+			console.log("Sending " + amount + " BTC to " + addr);
+			$('#tx-form')[0].reset();
+		});
 
-		console.log("Sending " + amount + " BTC to " + addr);
-		$('#tx-form')[0].reset();
 	})
 })
 
@@ -128,6 +134,7 @@ function generateWalletUI() {
 
 function updateBtcBalance() {
 	bitcoin.cmd('address', [bitcoin.getWallet().address]).then(function(info) {
-		$('#btc-balance').html("Balance: " + info.balance + " Satoshis");
+		gBalance = info.balance;
+		$('#btc-balance').html("Balance: " + info.balance/COIN + " BTC");
 	})
 }
