@@ -64,7 +64,7 @@ $('document').ready(function() {
 		}
 
 		// TODO: validate addr is correct bitcoin addr
-		bitcoin.sendBitcoin((amount*COIN/1), addr).then(function(result) {
+		bitcoin.sendBitcoin(((amount*COIN)/1), addr).then(function(result) {
 			console.log("Sending " + amount + " BTC to " + addr);
 			$('#tx-form')[0].reset();
 		});

@@ -1,14 +1,22 @@
 'use strict';
 
+const COIN = 100000000; // constant that defines number of Satoshis per BTC
+
 var bitgeek = require('./src/bitAPI')
 
 bitgeek.changeNetwork('testnet');
 
-bitgeek.sendBitcoin(2, 'xyz', 'mvWgGVrE9sackcubBq4uFETgqGSqPeuPpr', 'privkey')
-.then(result => console.log("final: " + result))
-.catch(err => console.log("caught exception: " + err));
+bitgeek.createWallet('', "cUdNnaMtYVKutyfDLssgagZFWrjkAfeR7gxFqedjxVzvVdT32yor")
+.then(wallet => {
+    return bitgeek.sendBitcoin(((0.4 * COIN)/1), 'miPqfc5uN3BwaDw9DbbK9kpQo6GEXXyCPa');
+})
+.then(result => console.log('finished'));
 
-console.log('done');
+// bitgeek.sendBitcoin(2, 'xyz', 'mvWgGVrE9sackcubBq4uFETgqGSqPeuPpr', 'privkey')
+// .then(result => console.log("final: " + result))
+// .catch(err => console.log("caught exception: " + err));
+
+// console.log('done');
 
 // bitgeek.cmd('unspent-outputs', ['mvWgGVrE9sackcubBq4uFETgqGSqPeuPpr'])
 // .then(data => console.log(data));
