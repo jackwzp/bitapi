@@ -47,16 +47,17 @@ class BitAPI {
 
 	sendBitcoin(amount, toAddress) {
 		var self = this;
-		console.log("sendBitcoin()...");
+
 		return new Promise(function(resolve, reject) {
 			// Get unspent txs (UTXOs)
 			self.cmd('unspent-outputs', [self.wallet.address]).then(function (utxo) {
-				console.log("Got unspent");
 				// Create TX structure and push to web api
-				var transaction = tx.create(utxo, amount, toAddress, self.wallet);
-				resolve(transaction)
+				return tx.create(utxo, amount, toAddress, self.wallet);
+			}).then(tx => {
 				// return self.cmd('pushtx', [transaction]);
-			})
+				console.log(tx);
+				resolve(tx);
+			}).catch(err => console.log(err));
 			// .then(function(result) {
 			// 	resolve(result);
 			// }).catch(function(err) {

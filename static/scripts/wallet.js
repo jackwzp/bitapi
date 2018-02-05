@@ -135,6 +135,7 @@ function generateWalletUI() {
 function updateBtcBalance() {
 	bitcoin.cmd('address', [bitcoin.getWallet().address]).then(function(info) {
 		gBalance = info.balance;
+		console.log("balance: " + JSON.stringify(info, null, 4));
 		$('#btc-balance').html("Balance: " + info.balance/COIN + " BTC");
 	})
 }

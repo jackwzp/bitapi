@@ -122,6 +122,11 @@ function getKeyHashFromAddr(addr) {
 	return bytes.toString('hex');
 }
 
+function getPubKeyFromPriv(key) {
+	var keys = createKeyPair(key);
+	return encodePubKey(keys.public);
+}
+
 function createWallet(network=0, importKey=0) {
 	var keys = createKeyPair(importKey);
 	var addr = generateAddr(keys.public, network);
@@ -153,7 +158,9 @@ function getNetworkFromKey(key) {
 module.exports = {
 	createWallet,
 	getNetworkFromKey,
-	getKeyHashFromAddr
+	getKeyHashFromAddr,
+	decodePrivKey,
+	getPubKeyFromPriv
 }
 
 

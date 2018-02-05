@@ -115,18 +115,21 @@ function serializeObjVal(obj) {
 }
 
 function ecdsa_sign(tx, priv) {
+    // double sha256 hash the tx
     var dhash = dsha256(tx);
-    console.log(dhash.toString('hex'));
 
-    eccrypto.sign(Buffer.from(priv, 'hex'), dhash).then(sig => {
-        console.log("sig in der: " + sig.toString('hex'));
-    })
+    // Extract out the 256 bit key and convert to bytes
+    var key = Buffer.from(keys.decodePrivKey(priv), 'hex');
 
-    // console.log('bintx bytes: ' + bytes);
+    // var key = Buffer.from(priv, 'hex'); // DELETE THIS!!
+
+    // sign the tx with the private key into DER format
+    return eccrypto.sign(key, dhash);
 }
 
-function signInput(tx, inputIdx, wallet) {
-    // Make a deep copy and clear all script and length field except for the inputIdx
+async function signInput(tx, inputIdx, wallet) {
+    // Make a deep copy and clear the script and length
+    // field except for the tx we're signing
     var newtx = JSON.parse(JSON.stringify(tx));
     for(var i = 0; i < newtx.inputs.length; i++) {
         if(i != inputIdx) {
@@ -135,47 +138,63 @@ function signInput(tx, inputIdx, wallet) {
         }
     }
 
-    // Serialize the new deep copy tx into binary
+    // Serialize newtx into binary and sign it with private key and
+    // then add 1 byte for SIGHASH_TYPE (default to 01 SIGHASH_ALL)
     var binTx = serializeObjVal(newtx);
-    console.log("serialize: " + binTx);
+    var signature = await ecdsa_sign(binTx, wallet.privateKey);
+    signature = signature.toString('hex') + '01';
 
-    var signature = ecdsa_sign(binTx, wallet.privateKey);
+    // Create scriptSig by <der_sig_len><der_sig><pub_key_len><pub_key>
+    var sigLenInBytes = toLE(addPadding((signature.length / 2).toString(16), 1));
+    var pubKey = keys.getPubKeyFromPriv(wallet.privateKey);
+    var pubKeyLenInBytes = toLE(addPadding((pubKey.length/2).toString(16), 1));
+    var scriptSig = sigLenInBytes + signature + pubKeyLenInBytes + pubKey;
 
-    // use ecdsa and create der_encode signature using priv key
+    // Validate that pubKeyHash matches the output we want to redeem
+    var lockingKeyHash = tx.inputs[inputIdx]['unlock-script'].slice(6,46);
+    var pubKeyHash = keys.getKeyHashFromAddr(wallet.address);
+    if (lockingKeyHash !== pubKeyHash) {
+        throw new Error("Private key did not match UTXO's locking requirement! Can not spend coins!");
+    }
 
-    // <der_encode_len><der_encode+hash_type><pub_key_len><pub_key>
-
-    // insert this new structure into tx.inputs[i].script and script len
+    // Insert this new scriptSig into tx.inputs[i].script and script len
+    tx.inputs[inputIdx]['unlock-script'] = scriptSig.toString(16);
+    tx.inputs[inputIdx]['script-length'] = (scriptSig.length/2).toString(16);
 }
 
-function create(utxo, amount, toAddr, wallet) {
-    return testPyTx();
-
+async function create(utxo, amount, toAddr, wallet) {
     // TODO: Validate toAddr is a correct bitcoin address
+    console.log("unspent: " + JSON.stringify(utxo, null, 4));
     var inputs = createInputs(utxo, amount);
     var inputValue = inputs.pop(); // remove the last value from array
     var outputs = createOutputs(amount, toAddr, inputValue, wallet);
-
     var tx = getNewTx(inputs, outputs);
 
     // Sign all the input individually
     for(var i = 0; i < inputs.length; i++) {
-        signInput(tx, i, wallet);
+        await signInput(tx, i, wallet);
     }
 
-    console.log("Transaction: " + JSON.stringify(tx, null, 4));
-
-    return inputs;
-
-}
-
-function testPyTx() {
-    var tx = { "version": "01000000", "inputcount": "03", "inputs": [{ "previous-hash": toLE("4cc806bb04f730c445c60b3e0f4f44b54769a1c196ca37d8d4002135e4abd171"), "previous-indx": "01000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("b0aad2e5184099b20d53100a678e9bec2eab1b0710fb06930f333387492a82b3"), "previous-indx": "00000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("97f7c7d8ac85e40c255f8a763b6cd9a68f3a94d2e93e8bfa08f977b92e55465e"), "previous-indx": "00000000", "script-length": "00", "unlock-script": "", "sequence": "ffffffff" }], "outputcount": "01", "outputs": [{ "value": "905f010000000000", "length": "19", "script": "76a9143ec6c3ed8dfc3ceabcc1cbdb0c5aef4e2d02873c88ac" }], "locktime": "00000000", "hashcodetype": "01000000" };
-    signInput(tx, 0, { privateKey: "57c617d9b4e1f7af6ec97ca2ff57e94a28279a7eedd4d12a99fa11170e94f5a4"});
-
-    return tx;
+    // Remove temporary hash type field in tx
+    // and return serialized data
+    delete tx.hashcodetype;
+    console.log(JSON.stringify(tx, null, 4));
+    return serializeObjVal(tx);
 }
 
 module.exports = {
     create
 }
+
+
+
+// async function testPyTx() {
+//     var tx = { "version": "01000000", "inputcount": "03", "inputs": [{ "previous-hash": toLE("4cc806bb04f730c445c60b3e0f4f44b54769a1c196ca37d8d4002135e4abd171"), "previous-indx": "01000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("b0aad2e5184099b20d53100a678e9bec2eab1b0710fb06930f333387492a82b3"), "previous-indx": "00000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("97f7c7d8ac85e40c255f8a763b6cd9a68f3a94d2e93e8bfa08f977b92e55465e"), "previous-indx": "00000000", "script-length": "00", "unlock-script": "", "sequence": "ffffffff" }], "outputcount": "01", "outputs": [{ "value": "905f010000000000", "length": "19", "script": "76a9143ec6c3ed8dfc3ceabcc1cbdb0c5aef4e2d02873c88ac" }], "locktime": "00000000", "hashcodetype": "01000000" };
+
+//     for (var i = 0; i < 3; i++) {
+//         await signInput(tx, i, { address: "1CQLd3bhw4EzaURHbKCwM5YZbUQfA4ReY6", privateKey: "57c617d9b4e1f7af6ec97ca2ff57e94a28279a7eedd4d12a99fa11170e94f5a4" });
+//     }
+
+//     console.log("testpytx done: " + JSON.stringify(tx, null, 4));
+//     return tx;
+// }
