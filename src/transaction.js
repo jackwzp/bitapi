@@ -146,9 +146,8 @@ async function signInput(tx, inputIdx, wallet) {
 
     // Create scriptSig by <der_sig_len><der_sig><pub_key_len><pub_key>
     var sigLenInBytes = toLE(addPadding((signature.length / 2).toString(16), 1));
-    var pubKey = keys.getPubKeyFromPriv(wallet.privateKey);
-    var pubKeyLenInBytes = toLE(addPadding((pubKey.length/2).toString(16), 1));
-    var scriptSig = sigLenInBytes + signature + pubKeyLenInBytes + pubKey;
+    var pubKeyLenInBytes = toLE(addPadding((wallet.publicKey.length/2).toString(16), 1));
+    var scriptSig = sigLenInBytes + signature + pubKeyLenInBytes + wallet.publicKey;
 
     // Validate that pubKeyHash matches the output we want to redeem
     var lockingKeyHash = tx.inputs[inputIdx]['unlock-script'].slice(6,46);
