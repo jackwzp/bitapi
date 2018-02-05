@@ -1,5 +1,6 @@
 var keys = require('./key');
 var crypto = require('crypto');
+var eccrypto = require("eccrypto");
 
 var opcodes = {
     OP_DUP: '76',
@@ -114,8 +115,14 @@ function serializeObjVal(obj) {
 }
 
 function ecdsa_sign(tx, priv) {
-    var bytes = Buffer.from(tx, 'hex');
-    console.log('bintx bytes: ' + bytes);
+    var dhash = dsha256(tx);
+    console.log(dhash.toString('hex'));
+
+    eccrypto.sign(Buffer.from(priv, 'hex'), dhash).then(sig => {
+        console.log("sig in der: " + sig.toString('hex'));
+    })
+
+    // console.log('bintx bytes: ' + bytes);
 }
 
 function signInput(tx, inputIdx, wallet) {
@@ -123,13 +130,15 @@ function signInput(tx, inputIdx, wallet) {
     var newtx = JSON.parse(JSON.stringify(tx));
     for(var i = 0; i < newtx.inputs.length; i++) {
         if(i != inputIdx) {
-            newtx.inputs[i]['script-length'] = 0;
+            newtx.inputs[i]['script-length'] = '00';
             newtx.inputs[i]['unlock-script'] = "";
         }
     }
 
     // Serialize the new deep copy tx into binary
     var binTx = serializeObjVal(newtx);
+    console.log("serialize: " + binTx);
+
     var signature = ecdsa_sign(binTx, wallet.privateKey);
 
     // use ecdsa and create der_encode signature using priv key
@@ -140,6 +149,8 @@ function signInput(tx, inputIdx, wallet) {
 }
 
 function create(utxo, amount, toAddr, wallet) {
+    return testPyTx();
+
     // TODO: Validate toAddr is a correct bitcoin address
     var inputs = createInputs(utxo, amount);
     var inputValue = inputs.pop(); // remove the last value from array
@@ -156,6 +167,13 @@ function create(utxo, amount, toAddr, wallet) {
 
     return inputs;
 
+}
+
+function testPyTx() {
+    var tx = { "version": "01000000", "inputcount": "03", "inputs": [{ "previous-hash": toLE("4cc806bb04f730c445c60b3e0f4f44b54769a1c196ca37d8d4002135e4abd171"), "previous-indx": "01000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("b0aad2e5184099b20d53100a678e9bec2eab1b0710fb06930f333387492a82b3"), "previous-indx": "00000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("97f7c7d8ac85e40c255f8a763b6cd9a68f3a94d2e93e8bfa08f977b92e55465e"), "previous-indx": "00000000", "script-length": "00", "unlock-script": "", "sequence": "ffffffff" }], "outputcount": "01", "outputs": [{ "value": "905f010000000000", "length": "19", "script": "76a9143ec6c3ed8dfc3ceabcc1cbdb0c5aef4e2d02873c88ac" }], "locktime": "00000000", "hashcodetype": "01000000" };
+    signInput(tx, 0, { privateKey: "57c617d9b4e1f7af6ec97ca2ff57e94a28279a7eedd4d12a99fa11170e94f5a4"});
+
+    return tx;
 }
 
 module.exports = {
