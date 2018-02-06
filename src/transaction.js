@@ -1,3 +1,5 @@
+'use strict';
+
 var keys = require('./key');
 var crypto = require('crypto');
 var eccrypto = require("eccrypto");
@@ -183,16 +185,3 @@ async function create(utxo, amount, toAddr, wallet) {
 module.exports = {
     create
 }
-
-
-
-// async function testPyTx() {
-//     var tx = { "version": "01000000", "inputcount": "03", "inputs": [{ "previous-hash": toLE("4cc806bb04f730c445c60b3e0f4f44b54769a1c196ca37d8d4002135e4abd171"), "previous-indx": "01000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("b0aad2e5184099b20d53100a678e9bec2eab1b0710fb06930f333387492a82b3"), "previous-indx": "00000000", "script-length": "19", "unlock-script": "76a9147d13547544ecc1f28eda0c0766ef4eb214de104588ac", "sequence": "ffffffff" }, { "previous-hash": toLE("97f7c7d8ac85e40c255f8a763b6cd9a68f3a94d2e93e8bfa08f977b92e55465e"), "previous-indx": "00000000", "script-length": "00", "unlock-script": "", "sequence": "ffffffff" }], "outputcount": "01", "outputs": [{ "value": "905f010000000000", "length": "19", "script": "76a9143ec6c3ed8dfc3ceabcc1cbdb0c5aef4e2d02873c88ac" }], "locktime": "00000000", "hashcodetype": "01000000" };
-
-//     for (var i = 0; i < 3; i++) {
-//         await signInput(tx, i, { address: "1CQLd3bhw4EzaURHbKCwM5YZbUQfA4ReY6", privateKey: "57c617d9b4e1f7af6ec97ca2ff57e94a28279a7eedd4d12a99fa11170e94f5a4" });
-//     }
-
-//     console.log("testpytx done: " + JSON.stringify(tx, null, 4));
-//     return tx;
-// }

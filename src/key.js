@@ -8,20 +8,11 @@ var Buffer = require('safe-buffer').Buffer;
 var getRandomValues = require('get-random-values');
 
 
-function toHexString(byteArray) {
-	return Array.from(byteArray, function(byte) {
-		return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-	}).join('')
-}
-
-
 function createRandom() {
-	return toHexString(getRandomValues(new Uint8Array(32)));
+	return Buffer.from(getRandomValues(new Uint8Array(32))).toString('hex');
 }
-
 
 function createKeyPair(key=0) {
-
 	// Import existing key or generate a random 256 bit binary #
 	var privateKey = (key === 0)? createRandom() : decodePrivKey(key);
 
@@ -33,7 +24,6 @@ function createKeyPair(key=0) {
 
 	// Return key pair in WIF-compressed format
 	return { private: privateKey, public: publicKey};
-
 }
 
 // Create WIF-Compressed format
@@ -54,7 +44,6 @@ function encodePrivKey(privateKey, network) {
 	// Convert to base58 encoding
 	bytes = Buffer.from(newKey, 'hex');
 	const key = base58.encode(bytes);
-
 	return key;
 }
 
@@ -111,7 +100,6 @@ function generateAddr(publicKey, network=0) {
 	// Convert to base58 encoding
 	bytes = Buffer.from(addr, 'hex');
 	addr = base58.encode(bytes);
-
 	return addr;
 }
 
@@ -120,19 +108,6 @@ function getKeyHashFromAddr(addr) {
 	var bytes = base58.decode(addr);
 	bytes = bytes.slice(1, 21); // remove 1 byte prefix and 4 byte checksum suffix
 	return bytes.toString('hex');
-}
-
-function createWallet(network=0, importKey=0) {
-	var keys = createKeyPair(importKey);
-	var addr = generateAddr(keys.public, network);
-
-	var result = {
-		privateKey: encodePrivKey(keys.private, network),
-		publicKey: encodePubKey(keys.public),
-		address: addr
-	}
-
-	return result;
 }
 
 function getNetworkFromKey(key) {
@@ -149,6 +124,18 @@ function getNetworkFromKey(key) {
 	return network;
 }
 
+function createWallet(network=0, importKey=0) {
+	var keys = createKeyPair(importKey);
+	var addr = generateAddr(keys.public, network);
+
+	var result = {
+		privateKey: encodePrivKey(keys.private, network),
+		publicKey: encodePubKey(keys.public),
+		address: addr
+	}
+
+	return result;
+}
 
 module.exports = {
 	createWallet,

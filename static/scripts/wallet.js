@@ -1,104 +1,93 @@
 
-const COIN = 100000000; // constant that defines number of Satoshis per BTC
+
 var gBalance = 0;
 
-$('document').ready(function() {
-	$("#create-wallet").click(function() {
-		hideImportWallet();
-		showCreateWallet();
-		clearTextArea();
-	})
+//==============================
+// Even Handlers for New Wallet
+//==============================
 
-	$("#import-wallet").click(function() {
-		hideCreateWallet();
-		showImportWallet();
-		clearTextArea();
-	})
-
-	$("#new-wallet-form").on('submit', function(e) {
-		e.preventDefault(e);
-		var network = $('input[name=network]:checked').val();
-
-		bitcoin.createWallet(network).then(function(wallet) {
-			hideCreateWallet();
-			changeTextArea(generateNewWalletInfo());
-			$('#new-wallet-form')[0].reset();
-		});
-	})
-
-	$("#old-wallet-form").on('submit', function(e) {
-		e.preventDefault(e);
-		var key = $('input[name="cipher"]').val();
-		// We don't need to pass in the network param because
-		// network will automatically be determined
-		bitcoin.createWallet("", key).then(function(wallet) {
-			// Sanity check to make sure private key is correct
-			if (wallet.privateKey === key) {
-				hideImportWallet();
-				changeTextArea(generateWalletUI());
-				$('#old-wallet-form')[0].reset();
-				updateBtcBalance();
-			} else {
-				displayAlert("danger", "Not a valid key, only WIF-compressed format is supported!");
-			}
-		});
-	})
-
-	// New wallet generation confirmation button click
-	$('#output-area').on('click', '#confirm-key', function(e) {
-		changeTextArea(generateWalletUI());
-		updateBtcBalance();
-	})
-
-	// Handle sending of transaction
-	$('#output-area').on('click', "#tx-form button", function(e) {
-		e.preventDefault(e);
-
-		// TODO: add form validation
-		var amount = $('input[name="btc"]').val();
-		var addr = $('input[name="addr"]').val();
-
-		//TODO: check amount <= balance without using a global
-		if (amount <= 0 || Number.isNaN(amount) || amount > gBalance) {
-			displayAlert("danger", "Please enter an valid amount");
-		}
-
-		// TODO: validate addr is correct bitcoin addr
-		bitcoin.sendBitcoin(amount, addr).then(function(result) {
-			console.log("Sending " + amount + " BTC to " + addr);
-			displayAlert("success", "Success! TX ID: " + result);
-			$('#tx-form')[0].reset();
-		}).catch(function(err) {
-			console.log(err);
-			displayAlert("danger", "Unable to send TX!");
-		});
-
-	})
+// Create New Wallet button click
+$("#create-wallet").click(function() {
+	$("#old-wallet").hide();
+	$("#new-wallet").show();
+	$("#output-area").html("");
 })
 
-function showCreateWallet() {
-	$("#new-wallet").show();
-}
+// Network selection and Create button click
+$("#new-wallet-form").on('submit', function (e) {
+	e.preventDefault(e);
+	var network = $('input[name=network]:checked').val();
 
-function hideCreateWallet() {
+	bitcoin.createWallet(network).then(function (wallet) {
+		$("#new-wallet").hide();
+		$("#output-area").html(generateNewWalletInfo());
+		$('#new-wallet-form')[0].reset();
+	});
+})
+
+// New wallet confirmation button click
+$('#output-area').on('click', '#confirm-key', function (e) {
+	$("#output-area").html(generateWalletUI());
+	updateBtcBalance();
+})
+
+//==============================
+// Even Handlers for Old Wallet
+//==============================
+
+// Import Existing Wallet button click
+$("#import-wallet").click(function() {
 	$("#new-wallet").hide();
-}
-
-function showImportWallet() {
 	$("#old-wallet").show();
-}
-
-function hideImportWallet() {
-	$("#old-wallet").hide();
-}
-
-function clearTextArea() {
 	$("#output-area").html("");
-}
+})
 
-function changeTextArea(data) {
-	$("#output-area").html(data);
-}
+// Private key unlock button click
+$("#old-wallet-form").on('submit', function(e) {
+	e.preventDefault(e);
+	var key = $('input[name="cipher"]').val();
+	// No need to pass in the network param because
+	// network will automatically be determined
+	bitcoin.createWallet("", key).then(function(wallet) {
+		// Sanity check to make sure private key is correct
+		if (wallet.privateKey === key) {
+			$("#old-wallet").hide();
+			$("#output-area").html(generateWalletUI());
+			$('#old-wallet-form')[0].reset();
+			updateBtcBalance();
+		} else {
+			displayAlert("danger", "Not a valid key, only WIF-compressed format is supported!");
+		}
+	});
+})
+
+//==============================
+// Handle sending of transaction
+//==============================
+$('#output-area').on('click', "#tx-form button", function(e) {
+	e.preventDefault(e);
+	// TODO: add form validation
+	var amount = $('input[name="btc"]').val();
+	var addr = $('input[name="addr"]').val();
+	//TODO: check amount <= balance without using a global
+	if (amount <= 0 || Number.isNaN(amount) || amount > gBalance) {
+		displayAlert("danger", "Please enter an valid amount");
+		return;
+	}
+	// TODO: validate addr is correct bitcoin addr
+	bitcoin.sendBitcoin(amount, addr).then(function(result) {
+		console.log("Sending " + amount + " BTC to " + addr);
+		displayAlert("success", "Success! TX ID: " + result);
+		$('#tx-form')[0].reset();
+	}).catch(function(err) {
+		console.log(err);
+		displayAlert("danger", "Unable to send TX!");
+	});
+})
+
+//==============================
+// Helper Functions
+//==============================
 
 function displayAlert(type, msg) {
 	var alert = `
@@ -140,5 +129,5 @@ function updateBtcBalance() {
 	bitcoin.getBalance().then(function(balance) {
 		gBalance = balance;
 		$('#btc-balance').html("Balance: " + balance + " BTC");
-	})
+	});
 }

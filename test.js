@@ -4,6 +4,9 @@ const COIN = 100000000; // constant that defines number of Satoshis per BTC
 
 var bitgeek = require('./src/simplewallet')
 
+bitgeek.createWallet("testnet")
+.then(w => console.log(w));
+
 // bitgeek.createWallet('', 'cUdNnaMtYVKutyfDLssgagZFWrjkAfeR7gxFqedjxVzvVdT32yor')
 // .then(w => {return bitgeek.getBalance()})
 // .then(r => console.log(r))
@@ -11,11 +14,11 @@ var bitgeek = require('./src/simplewallet')
 
 // bitgeek.changeNetwork('testnet');
 
-bitgeek.createWallet('', "cUdNnaMtYVKutyfDLssgagZFWrjkAfeR7gxFqedjxVzvVdT32yor")
-.then(wallet => {
-    return bitgeek.sendBitcoin(0.4, 'miPqfc5uN3BwaDw9DbbK9kpQo6GEXXyCPa');
-})
-.then(result => console.log(result));
+// bitgeek.createWallet('', "cUdNnaMtYVKutyfDLssgagZFWrjkAfeR7gxFqedjxVzvVdT32yor")
+// .then(wallet => {
+//     return bitgeek.sendBitcoin(0.4, 'miPqfc5uN3BwaDw9DbbK9kpQo6GEXXyCPa');
+// })
+// .then(result => console.log(result));
 
 // bitgeek.sendBitcoin(2, 'xyz', 'mvWgGVrE9sackcubBq4uFETgqGSqPeuPpr', 'privkey')
 // .then(result => console.log("final: " + result))
