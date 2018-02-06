@@ -83,8 +83,17 @@ class WebAPI {
         })
     }
 
-    sendTx(tx) {
+    sendTx(data) {
+        var url = this.api + this.network + '/txs/push';
+        var payload = {tx: data};
 
+        return new Promise((resolve, reject) => {
+            request.post({url: url, form: JSON.stringify(payload)}, (err, res, body) => {
+                if (err) reject(err);
+                var result = JSON.parse(body);
+                resolve(result.tx.hash);
+            })
+        })
     }
 
 

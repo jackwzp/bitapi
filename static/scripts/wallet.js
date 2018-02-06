@@ -66,7 +66,11 @@ $('document').ready(function() {
 		// TODO: validate addr is correct bitcoin addr
 		bitcoin.sendBitcoin(amount, addr).then(function(result) {
 			console.log("Sending " + amount + " BTC to " + addr);
+			displayAlert("success", "Success! TX ID: " + result);
 			$('#tx-form')[0].reset();
+		}).catch(function(err) {
+			console.log(err);
+			displayAlert("danger", "Unable to send TX!");
 		});
 
 	})
