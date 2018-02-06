@@ -2,7 +2,7 @@
 
 const COIN = 100000000; // constant that defines number of Satoshis per BTC
 
-var bitgeek = require('./src/bitAPI')
+var bitgeek = require('./src/simplewallet')
 
 bitgeek.changeNetwork('testnet');
 

@@ -2,11 +2,11 @@
 
 var RpcAPI = require('./rpcapi');
 var WebAPI = require('./webapi');
-var wallet = require('./key');
+var keys = require('./key');
 var tx = require('./transaction');
 
 
-class BitAPI {
+class SimpleWallet {
 	constructor() {
 		this.webapi = new WebAPI();
 		this.rpc = new RpcAPI();
@@ -36,16 +36,15 @@ class BitAPI {
 
 	createWallet(network=0, key=0) {
 		// When importing keys, determine the network automatically
-		if (wallet.getNetworkFromKey(key) !== "unknown") {
-			network = wallet.getNetworkFromKey(key);
+		if (keys.getNetworkFromKey(key) !== "unknown") {
+			network = keys.getNetworkFromKey(key);
 		}
 		this.current.changeNetwork(network);
-		var result = wallet.createWallet(network, key);
-		this.wallet = result;
+		this.wallet = keys.createWallet(network, key);
 
 		return new Promise(function(resolve, reject) {
-			resolve(result);
-		});
+			resolve(this.wallet);
+		}.bind(this));
 	}
 
 	sendBitcoin(amount, toAddress) {
@@ -70,7 +69,5 @@ class BitAPI {
 	}
 }
 
-var bitcoin = new BitAPI();
-
-module.exports = bitcoin;
+module.exports = new SimpleWallet();
 
