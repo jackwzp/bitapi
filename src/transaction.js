@@ -91,8 +91,8 @@ function createInputs(utxo, amount) { // No signing yet
         var obj = {};
         obj['previous-hash'] = toLE(tx.hash);
         obj['previous-indx'] = toLE(addPadding(tx.index.toString(16), 4)); // Add padding to make it 4 bytes
-        obj['script-length'] = (tx.script_hex.length/2).toString(16); // length of tx.script_hex in bytes
-        obj['unlock-script'] = tx.script_hex; // Set to the value of locking script in utxo for now
+        obj['script-length'] = (tx.script.length/2).toString(16); // length of tx.script in bytes
+        obj['unlock-script'] = tx.script; // Set to the value of locking script in utxo for now
         obj['sequence'] = 'ffffffff'; // use default value
         return obj;
     });
@@ -163,7 +163,6 @@ async function signInput(tx, inputIdx, wallet) {
 
 async function create(utxo, amount, toAddr, wallet) {
     // TODO: Validate toAddr is a correct bitcoin address
-    console.log("unspent: " + JSON.stringify(utxo, null, 4));
     var inputs = createInputs(utxo, amount);
     var inputValue = inputs.pop(); // remove the last value from array
     var outputs = createOutputs(amount, toAddr, inputValue, wallet);

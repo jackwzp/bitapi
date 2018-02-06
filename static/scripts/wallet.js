@@ -64,7 +64,7 @@ $('document').ready(function() {
 		}
 
 		// TODO: validate addr is correct bitcoin addr
-		bitcoin.sendBitcoin(((amount*COIN)/1), addr).then(function(result) {
+		bitcoin.sendBitcoin(amount, addr).then(function(result) {
 			console.log("Sending " + amount + " BTC to " + addr);
 			$('#tx-form')[0].reset();
 		});
@@ -133,9 +133,8 @@ function generateWalletUI() {
 }
 
 function updateBtcBalance() {
-	bitcoin.cmd('address', [bitcoin.getWallet().address]).then(function(info) {
-		gBalance = info.balance;
-		console.log("balance: " + JSON.stringify(info, null, 4));
-		$('#btc-balance').html("Balance: " + info.balance/COIN + " BTC");
+	bitcoin.getBalance().then(function(balance) {
+		gBalance = balance;
+		$('#btc-balance').html("Balance: " + balance + " BTC");
 	})
 }
